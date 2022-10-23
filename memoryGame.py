@@ -2,13 +2,13 @@
 import random
 class tile:
     flipped=False
-    def _init_(self, image):
+    def __init__(self, image):
         self.image=image
     def getImage(self):
         if(self.flipped):
             return self.image
         else:
-            return "_"
+            return ":flower_playing_cards:"
 def printTiles(tiles):
 	mess=""
 	for i in tiles:
@@ -25,7 +25,7 @@ def openTilePair(pair, tiles):
 	t2=tiles[pair[1][0]][pair[1][1]]
 	t1.flipped=True
 	t2.flipped=True
-	
+	r=printTiles(tiles)
 	if(t1.getImage()==t2.getImage()):
 		print("Pair found")
 	else:
@@ -34,7 +34,7 @@ def openTilePair(pair, tiles):
 		print("not a pair")
 	if(gameEnd(tiles)):
 		return "You won!"
-	return printTiles(tiles)
+	return r
 def gameEnd(tiles):
 	for i in tiles:
 		for j in i:
@@ -42,7 +42,7 @@ def gameEnd(tiles):
 				return False
 	return True
 class tileGame:
-	images=["a","b","c","d","e","f","g","@","&","#","+","2","?","!","€","*","£","¢"]
+	images=[":eggplant:",":egg:",":peach:",":pear:",":apple:","peanuts",":coin:",":peacock:",":peace:",":dove:",":recycle:",":lock:",":lotus:",":lobster:",":lollipop:",":loud_sound:",":purple_heart:",":heart_exclamation:"]
 	imagesTemp=[]
 	def __init__(self):
 		imagesTemp=[]

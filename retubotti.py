@@ -15,25 +15,42 @@ class MyClient(discord.Client):
 
     def clear_pool(self):
         self.pool=[]
+    def get_params(self,s):
+        s2=s.split(",")
+        return s2
     async def on_message(self, message):
-        
-        if(message.content.startswith("$StartMemoryGame")):
-            tg=memoryGame.tileGame()
-            await message.channel.send(memoryGame.printTiles(tg.grid))
-        if(message.content.startswith("$MemoryGamePM")):
-            memoryGame.openTilePair(message.content)
+        mess=message.content.split("$")
+        if(1<len(mess)):
+            mess=mess[1]
+            mess=self.get_params(mess)
+        if(mess[0]==("StartMemoryGame")):
+            self.tg=memoryGame.tileGame()
+            await message.channel.send(memoryGame.printTiles(self.tg.grid))
+        if(mess[0]==("MemoryGamePM")):
+            try:
 
-        if(message.content.startswith("$Hello")):
+                x1=int(mess[1])
+                print(x1)
+                y1=int(mess[2])
+                print(y1)
+                x2=int(mess[3])
+                print(x2)
+                y2=int(mess[4])
+                print(y2)
+                await message.channel.send(memoryGame.openTilePair([[x1,y1],[x2,y2]],self.tg.grid))
+            except Exception as e:
+                print(e)
+        if(mess[0]==("Hello")):
             await message.channel.send("Hello world!")
 
 
-        if(message.content.startswith("$clearPool")):
+        if(mess[0]==("clearPool")):
             self.clear_pool()
             await message.channel.send("user-pool cleared")
 
 
 
-        if(message.content.startswith("$selectUser")):
+        if(mess[0]==("selectUser")):
             if(len(self.pool)>0):
                 w=random.randint(0,len(self.pool)-1)
                 for user in range(len(self.pool)):
@@ -43,17 +60,20 @@ class MyClient(discord.Client):
                     else:
                         print(self.pool[user])
                         await self.pool[user].send("You were NOT selected")
-        if(message.content.startswith("$addMe")):
+        if(mess[0]==("$addMe")):
             self.pool.append(message.author)
         print('Message from {0.author}: {0.content}'.format(message))
+        print(mess[0])
+        #await self.process_commands(message)
 
 
-client = MyClient()
+client = MyClient(intents=discord.Intents.default())
 tokenFile = open("token.txt", "r")
 token=tokenFile.read()
 tokenFile.close()
 client.run(token)
-client2 = commands.Bot(command_prefix = "$")
-@client2.command()
+#client = commands.Bot(command_prefix = "$",intents=discord.Intents.default())
+client.run(token)
+@client.command()
 async def MemoryGamePM(ctx,  x1: int,  y1: int,  x2: int,  y2: int):
   await ctx.send(memoryGame.openTilePair([[x1,y1],[x2,y2]]))
