@@ -26,6 +26,12 @@ class MyClient(discord.Client):
         if(mess[0]==("StartMemoryGame")):
             self.tg=memoryGame.tileGame()
             await message.channel.send(memoryGame.printTiles(self.tg.grid))
+        if(mess[0]==("roll")):
+            print(mess)
+            p=mess[1]
+
+            if (int(p)):
+                await message.channel.send(random.randint(1,int(p)))
         if(mess[0]==("MemoryGamePM")):
             try:
 
