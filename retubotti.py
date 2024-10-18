@@ -5,7 +5,12 @@ import matplotlib.pyplot as plt
 import random
 import memoryGame
 from matplotlib import rcParams
+import json
 rcParams['text.usetex'] = True
+messages={}
+with open("remembeMemory.json", "r") as file:
+    messages = json.load(file)
+    print('Memory dictionary:', messages)
 class MyClient(discord.Client):
     pool=[]
     tg=None
@@ -85,6 +90,29 @@ async def roll(ctx,dice: str):
             await ctx.send(random.randint(1,x))
     except:
         await ctx.send(dice+" is not a number dingus.")
+
+
+@client.command()
+async def remember(ctx,key: str,*,msg: str):
+    messages[key]=msg
+    with open("remembeMemory.json", "w") as file:
+        json.dump(messages, file)
+    await ctx.send("🫡")
+@client.command()
+async def forget(ctx,key: str):
+    messages.pop(key)
+    with open("remembeMemory.json", "w") as file:
+        json.dump(messages, file)
+    await ctx.send("🫡")
+@client.command()
+async def remind(ctx,key: str):
+    if(key in messages.keys()):
+        await ctx.send(messages[key])
+    else:
+        await ctx.send("Sorry I dont remember that.")
+@client.command()
+async def recall(ctx):
+    await ctx.send(messages.keys())
 @client.command()
 async def latex(ctx,txt: str):
     plt.text(0.5,0.5, r"$%s$" %(txt),fontsize=30,va="center",ha="center")
