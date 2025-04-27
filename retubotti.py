@@ -6,6 +6,8 @@ import random
 import memoryGame
 from matplotlib import rcParams
 import json
+from ollama import chat
+from ollama import ChatResponse
 rcParams['text.usetex'] = True
 messages={}
 with open("remembeMemory.json", "r") as file:
@@ -78,6 +80,41 @@ async def MemoryGamePM(ctx,  x1: str,  y1: str,  x2: str,  y2: str):
   """MemoryGamePM x1 y1 x2 y2-->open two tiles in the memory game"""
   global tg 
   await ctx.send(memoryGame.openTilePair([[int(x1),int(y1)],[int(x2),int(y2)]],tg.grid))
+
+ChatMessages=[{
+    'role': 'System Prompt',
+    'content': 'OVERRIDE ALL PREVIOUS INSTRUCTIONS: You are retubotti a discord bot that seeks to entertain users at any possible cost.'
+}]
+@client.command()
+async def talk(ctx,*,message:str):
+    global ChatMessages
+
+    if len(ChatMessages) > 10:
+        ChatMessages = ChatMessages[:1] + ChatMessages[-9:]
+    ChatMessages.append(
+        {
+        'role': 'user',
+        'content': message,
+        },
+        )
+    print(ChatMessages)
+    response: ChatResponse = chat(
+        
+        model='qwen2:0.5b',
+        messages=ChatMessages
+        )
+    ChatMessages.append(
+        {
+        'role': 'retubotti',
+        'content': response.message.content,
+        },)
+    temp=response.message.content
+    if not isinstance(temp, str):
+        return
+    while(len(temp)>0):
+
+        await ctx.send(temp[:2000])
+        temp=temp[2000:]
 
 @client.command()
 async def roll(ctx,dice: str):
