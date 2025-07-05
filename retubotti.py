@@ -1,3 +1,4 @@
+import subprocess
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands
@@ -127,8 +128,59 @@ async def roll(ctx,dice: str):
             await ctx.send(random.randint(1,x))
     except:
         await ctx.send(dice+" is not a number dingus.")
+def is_code_safe(code: str) -> bool:
+    banned = ['windows.h','system(', 'fork', 'while(true)', 'for(;;)', 'exit(', 'kill(', 'CreateProcess']
+    return not any(bad in code for bad in banned)
+def create_embed(title, description, color=discord.Color.blue()):
+    embed = discord.Embed(title=title, description=description, color=color)
+    embed.set_footer(text="Retubotti C++ Compiler • Powered by sarcasm and clang++")
+    return embed
+@client.command()
+async def compile(ctx,*,source: str):
+    if(not(is_code_safe(source))):
+        await ctx.send("🚨 INCOMING THREAT DETECTED Threat Level: Overconfident Script Kiddie🚨 \nSir, they’re trying to execute while(true) again.” “Deploy sarcasm countermeasures. Lock down the compiler. Alert the Discord mods.")
+        return
+    with open("main.cpp", "w") as f:
+        f.write(source)
+    
+    compile_proc = subprocess.run(
+            ["clang++", "main.cpp", "-o", "temp.exe"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+    if compile_proc.returncode != 0:
+            await ctx.send(embed=create_embed("Compilation failed:", "```\n"+compile_proc.stderr+"\n```"))
+            response: ChatResponse = chat(
+        model='qwen2:0.5b',
+        messages=[{"role": "system", "content": "Following is the error of the users code, roast this user : " + compile_proc.stderr},{"role": "system", "content": source}]
+        )
+            temp=response.message.content
+            while(len(temp)>0):
+                await ctx.send(temp[:2000])
+                temp=temp[2000:]
 
-
+            return
+    try:
+        run_proc = subprocess.run(
+                    ["temp.exe"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=5,
+                    text=True
+                )
+        await ctx.send(embed=create_embed("Compilation success:\n","```\n"+run_proc.stdout + run_proc.stderr+"\n```"))
+        response: ChatResponse = chat(
+        model='qwen2:0.5b',
+        messages=[{"role": "system", "content": "Following is the output of the users program, roast this user:  " + run_proc.stdout + run_proc.stderr},{"role": "system", "content": source}]
+        )
+        temp=response.message.content
+        while(len(temp)>0):
+                await ctx.send(temp[:2000])
+                temp=temp[2000:]
+    except subprocess.TimeoutExpired:
+            ctx.send(embed=create_embed("Compilation success, Execution timed out:\n","😔"))
+            return
 @client.command()
 async def remember(ctx,key: str,*,msg: str):
     messages[key]=msg
