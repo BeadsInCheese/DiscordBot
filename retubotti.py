@@ -129,7 +129,12 @@ async def roll(ctx,dice: str):
     except:
         await ctx.send(dice+" is not a number dingus.")
 def is_code_safe(code: str) -> bool:
-    banned = ['windows.h','system(', 'fork', 'while(true)', 'for(;;)', 'exit(', 'kill(', 'CreateProcess']
+    banned = [
+    'windows.h','bits/stdc++.h', 'filesystem','fstream',
+    'system(', '_popen(', 'popen(', 'WinExec', 'ShellExecute',
+    'execv(', 'CreateProcess', 'CreateThread', 'std::thread',
+    'VirtualAlloc', 'LoadLibrary', 'socket(', 'bind(', '__asm'
+    ]
     return not any(bad in code for bad in banned)
 def create_embed(title, description, color=discord.Color.blue()):
     embed = discord.Embed(title=title, description=description, color=color)
