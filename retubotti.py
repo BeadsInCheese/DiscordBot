@@ -1,5 +1,7 @@
 import subprocess
+import time
 import discord
+import asyncio
 from discord.ext.commands import Bot
 from discord.ext import commands
 import matplotlib.pyplot as plt
@@ -14,52 +16,6 @@ messages={}
 with open("remembeMemory.json", "r") as file:
     messages = json.load(file)
     print('Memory dictionary:', messages)
-class MyClient(discord.Client):
-    pool=[]
-    tg=None
-    async def on_ready(self):
-
-        print('Logged on as {0}!'.format(self.user))
-
-    async def args(ctx, arg1, arg2):
-        await ctx.send('You sent {} and {}'.format(arg1, arg2))
-
-    def clear_pool(self):
-        self.pool=[]
-    def get_params(self,s):
-        s2=s.split(",")
-        return s2
-    async def on_message(self, message):
-        mess=message.content.split("$")
-        if(1<len(mess)):
-            mess=mess[1]
-            mess=self.get_params(mess)
-        if(mess[0]==("Hello")):
-            await message.channel.send("Hello world!")
-
-
-        if(mess[0]==("clearPool")):
-            self.clear_pool()
-            await message.channel.send("user-pool cleared")
-
-
-
-        if(mess[0]==("selectUser")):
-            if(len(self.pool)>0):
-                w=random.randint(0,len(self.pool)-1)
-                for user in range(len(self.pool)):
-                    if(w==user):
-                        print(self.pool[user])
-                        await self.pool[user].send("You were selected")
-                    else:
-                        print(self.pool[user])
-                        await self.pool[user].send("You were NOT selected")
-        if(mess[0]==("$addMe")):
-            self.pool.append(message.author)
-        print('Message from {0.author}: {0.content}'.format(message))
-        print(mess[0])
-        #await self.process_commands(message)
-
 intent =  intents=discord.Intents.all()
 intent.members = True
 intent.message_content = True
@@ -192,6 +148,43 @@ async def remember(ctx,key: str,*,msg: str):
     with open("remembeMemory.json", "w") as file:
         json.dump(messages, file)
     await ctx.send("🫡")
+
+timedict={"h":3600,"hour":3600,"tuntia":3600,"min":60,"minute":60,"m":60,"minuuttia":60,"sec":1,"second":1,"s":1,"sekunttia":1}
+def parse_time(msg):
+    if len(msg)==0:
+        return 0
+    if(msg[0].isnumeric()):
+        t=float(msg[0])
+        if(len(msg)>1):
+            if(msg[1] in timedict):
+                t*=timedict[msg[1]]
+                return t+parse_time(msg[2:])
+        else:
+            t*=1
+            return t*60
+    return 0
+def format_time_full(seconds: int) -> str:
+    d = seconds // 86400
+    h = (seconds % 86400) // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    parts = []
+    if d: parts.append(str(int(d))+" day" + ("s" if d != 1 else ""))
+    if h: parts.append(str(int(h))+" hour" + ("s" if h != 1 else ""))
+    if m: parts.append(str(int(m))+" minute" + ("s" if m != 1 else ""))
+    if s: parts.append(str(int(s))+" second" + ("s" if s != 1 else ""))
+    return " ".join(parts) if parts else "0 seconds"
+
+@client.command()
+async def notify(ctx,*,msg: str):
+    numbers=msg.split(" ")
+    if(numbers[0].isnumeric):    
+        t=parse_time(numbers)
+        await ctx.send("sending notification in "+format_time_full(t))
+        await asyncio.sleep(t)
+        await ctx.send(ctx.author.mention + " time is up⏰")
+    else:
+        await ctx.send('"'+msg+'"' + " is not a valid time.")
 @client.command()
 async def forget(ctx,key: str):
     messages.pop(key)
